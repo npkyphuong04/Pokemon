@@ -78,11 +78,12 @@ func fetchPokemonData() ([]Pokemon, error) {
 		// Find and parse Pokemon attributes
 		s.Find("td.cell-num").Each(func(k int, attrSelection *goquery.Selection) {
 			attrText := strings.TrimSpace(attrSelection.Text())
-			attrValue, err := strconv.Atoi(attrText)
+			attrValue, err := strconv.Atoi(attrText) // Convert string to int
 			if err != nil {
 				log.Printf("Error parsing attribute %d for %s: %v", k, pokemon.Name, err)
 				return
 			}
+			// Assign attribute value to the corresponding field
 			switch k {
 			case 2:
 				pokemon.Attributes.HP = attrValue
@@ -124,7 +125,7 @@ func fetchBaseExp(pokemons []Pokemon) error {
 
 		// Find and parse BaseExp
 		baseExpStr := strings.TrimSpace(s.Find("td").Eq(3).Text())
-		baseExp, err := strconv.Atoi(baseExpStr)
+		baseExp, err := strconv.Atoi(baseExpStr) // Convert string to int
 		if err != nil {
 			log.Printf("Error parsing BaseExp for Pokemon: %s - %v", pokemonName, err)
 			return
@@ -144,6 +145,7 @@ func fetchBaseExp(pokemons []Pokemon) error {
 	return nil
 }
 
+// Save pokedex to a JSON file
 func savePokedex(pokedex Pokedex) error {
 	data, err := json.MarshalIndent(pokedex.Pokemons, "", "  ")
 	if err != nil {
@@ -152,6 +154,7 @@ func savePokedex(pokedex Pokedex) error {
 	return ioutil.WriteFile("pokedex.json", data, 0644)
 }
 
+// Load pokedex from a JSON file
 func loadPokedex() (Pokedex, error) {
 	data, err := ioutil.ReadFile("pokedex.json")
 	if err != nil {
@@ -165,10 +168,14 @@ func loadPokedex() (Pokedex, error) {
 func levelUp(pokemon *Pokemon) {
 	// Calculate required experience points for the next level
 	requiredExp := pokemon.BaseExp * (1 << (pokemon.Level - 1))
+
+	// Check if the Pokemon has enough experience points to level up
 	if pokemon.Experience >= requiredExp {
 		pokemon.Level++
-		pokemon.Experience -= requiredExp
-		evMultiplier := 1.0 + pokemon.EV
+		pokemon.Experience -= requiredExp // Deduct required experience points
+		evMultiplier := 1.0 + pokemon.EV  // EV multiplier
+
+		// Increase attributes based on the EV multiplier
 		pokemon.Attributes.HP = int(float64(pokemon.Attributes.HP) * evMultiplier)
 		pokemon.Attributes.Attack = int(float64(pokemon.Attributes.Attack) * evMultiplier)
 		pokemon.Attributes.Defense = int(float64(pokemon.Attributes.Defense) * evMultiplier)
