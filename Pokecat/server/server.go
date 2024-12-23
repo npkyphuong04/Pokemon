@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -95,6 +97,11 @@ func (server *GameServer) addPlayer(conn net.Conn) {
 }
 
 func (server *GameServer) handlePlayer(conn net.Conn, player *Player) {
+	defer func() {
+		server.savePlayerPokemons(player)
+		conn.Close()
+		fmt.Printf("Connection closed for player %s. Pokémon data saved.\n", player.ID)
+	}()
 	defer conn.Close()
 	for {
 		buffer := make([]byte, 1024)
@@ -200,6 +207,22 @@ func (server *GameServer) gameLoop() {
 			}
 		}
 		server.Mutex.Unlock()
+	}
+}
+
+func (server *GameServer) savePlayerPokemons(player *Player) {
+	player.Mutex.Lock()
+	defer player.Mutex.Unlock()
+	file, err := os.Create(fmt.Sprintf("%s_pokemons.json", player.ID))
+	if err != nil {
+		fmt.Printf("Error creating file: %v\n", err)
+		return
+	}
+	defer file.Close()
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(player.Pokemons)
+	if err != nil {
+		fmt.Printf("Error encoding JSON: %v\n", err)
 	}
 }
 
