@@ -19,7 +19,7 @@ func main() {
 	fmt.Println("Connected to PokeCat server!")
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("Enter command (UP, DOWN, LEFT, RIGHT): ")
+		fmt.Print("Enter command (UP, DOWN, LEFT, RIGHT, INVENTORY): ")
 		command, _ := reader.ReadString('\n')
 		command = strings.TrimSpace(command)
 		_, err := conn.Write([]byte(command + "\n"))

@@ -113,6 +113,8 @@ func (server *GameServer) handlePlayer(conn net.Conn, player *Player) {
 			player.Move(-1, 0, server.WorldSize)
 		case "RIGHT":
 			player.Move(1, 0, server.WorldSize)
+		case "INVENTORY":
+			server.showInventory(player, conn)
 		default:
 			conn.Write([]byte("Invalid command\n"))
 			continue
@@ -122,6 +124,20 @@ func (server *GameServer) handlePlayer(conn net.Conn, player *Player) {
 	server.Mutex.Lock()
 	delete(server.Players, player.ID)
 	server.Mutex.Unlock()
+}
+
+func (server *GameServer) showInventory(player *Player, conn net.Conn) {
+	player.Mutex.Lock()
+	defer player.Mutex.Unlock()
+	if len(player.Pokemons) == 0 {
+		conn.Write([]byte("Your inventory is empty.\n"))
+		return
+	}
+	inventory := "Your Pokemon inventory:\n"
+	for i, pokemon := range player.Pokemons {
+		inventory += fmt.Sprintf("%d: %s (Level %d, EV %.2f)\n", i, pokemon.Name, pokemon.Level, pokemon.EV)
+	}
+	conn.Write([]byte(inventory))
 }
 
 func (player *Player) Move(dx, dy, worldSize int) {
