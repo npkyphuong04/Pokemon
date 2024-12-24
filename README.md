@@ -65,7 +65,7 @@ This application offers an interactive Pokémon experience through three main fe
     - Go to the [official GO download page](https://go.dev/dl/).
     - Download the installer for your operating system.
 
-2. Verify Installation
+2. **Verify Installation**
 
 After installation, open a terminal or command prompt and run the following commands to verify that GO is installed:
 
@@ -73,16 +73,16 @@ After installation, open a terminal or command prompt and run the following comm
 go version
 ```
 
-3. Install the Go Extension
+3. **Install the Go Extension**
     - Go to the Extensions view (Ctrl+Shift+X or Cmd+Shift+X on macOS).
     - Search for "Go" and install [the Go extension](https://marketplace.visualstudio.com/items?itemName=golang.Go).
 
 
-4. Install Go Tools
+4. **Install Go Tools**
 
 When you open a .go file for the first time, VS Code will prompt you to install the Go tools (like gopls, dlv, etc.). Click Install All to set them up.
 
-5. Run the Go Project
+5. **Run the Go Project**
 
 ```sh
 go run main.go
