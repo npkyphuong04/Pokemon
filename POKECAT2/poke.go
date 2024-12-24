@@ -186,6 +186,32 @@ func capturePokemon(p *Player) {
 		fmt.Printf("- %s\n", pokemon.Name)
 	}
 }
+func wsHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println("Error upgrading connection:", err)
+		return
+	}
+
+	p, err := addPlayer()
+	if err != nil {
+		conn.WriteJSON(map[string]string{"error": "Only one player allowed"})
+		fmt.Println(err)
+		conn.Close()
+		return
+	}
+
+	fmt.Printf("Player %d connected\n", p.ID)
+
+	defer func() {
+		lock.Lock()
+		player = nil
+		lock.Unlock()
+		fmt.Printf("Player %d disconnected\n", p.ID)
+	}()
+
+	gameLoop(conn, p)
+}
 
 // Hàm chính để xử lý vòng lặp game
 func gameLoop(conn *websocket.Conn, p *Player) {
