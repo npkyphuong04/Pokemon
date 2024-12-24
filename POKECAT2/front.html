@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PokeWorld AutoMode</title>
+    <style>
+        canvas {
+            border: 1px solid black; /* Thêm viền cho canvas */
+        }
+    </style>
+</head>
+<body>
+    <h1>PokeWorld</h1>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const ws = new WebSocket("ws://localhost:8080/ws"); // Kết nối WebSocket đến server
+
+        let world = []; // Mảng chứa thông tin thế giới
+        let player = { X: 0, Y: 0 }; // Vị trí người chơi
+        let autoMode = false; // Biến kiểm soát chế độ AutoMode
+        let autoMoveInterval = null; // Lưu trữ interval của AutoMode
+        let autoModeTimeout = null; // Lưu trữ timeout để tự động dừng sau 2 phút
+
+        // Khi kết nối WebSocket được thiết lập
+        ws.onopen = () => {
+            console.log("WebSocket connection established.");
+        };
+
+        // Xử lý khi nhận dữ liệu từ server
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data); // Giải mã dữ liệu JSON
+
+                if (data.player) {
+                    player = data.player; // Cập nhật vị trí người chơi
+                }
+
+                if (data.world) {
+                    world = data.world; // Cập nhật bản đồ
+                    drawGame(); // Vẽ lại trò chơi
+                }
+            } catch (error) {
+                console.error("Error parsing server response:", error);
+            }
+        };
+
+        // Xử lý lỗi WebSocket
+        ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+
+        // Hàm vẽ trò chơi lên canvas
+        function drawGame() {
+            const cellSize = 20; // Kích thước ô trong thế giới
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Xóa canvas trước khi vẽ lại
+
+            // Vẽ thế giới (các ô chứa Pokémon)
+            for (let x = 0; x < 20; x++) {
+                for (let y = 0; y < 20; y++) {
+                    if (world[x] && world[x][y] && world[x][y].Pokemon) {
+                        ctx.fillStyle = "red"; // Ô có Pokémon, vẽ màu đỏ
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    } else {
+                        ctx.strokeStyle = "gray"; // Ô không có Pokémon, vẽ viền màu xám
+                        ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+
+            // Vẽ người chơi
+            ctx.fillStyle = "blue"; // Màu người chơi là xanh dương
+            ctx.fillRect(player.X * cellSize, player.Y * cellSize, cellSize, cellSize);
+        }
+
+        // Xử lý sự kiện bàn phím khi người chơi di chuyển
+        document.addEventListener("keydown", (event) => {
+            let dx = 0, dy = 0;
+
+            switch (event.key) {
+                case "ArrowUp": // Di chuyển lên
+                    dy = -1;
+                    break;
+                case "ArrowDown": // Di chuyển xuống
+                    dy = 1;
+                    break;
+                case "ArrowLeft": // Di chuyển trái
+                    dx = -1;
+                    break;
+                case "ArrowRight": // Di chuyển phải
+                    dx = 1;
+                    break;
+                case "B":
+                case "b": // Bật/tắt chế độ AutoMode khi nhấn B
+                    toggleAutoMode(); // Bật/tắt AutoMode
+                    return; // Không xử lý di chuyển
+                default:
+                    return; // Bỏ qua các phím khác
+            }
+
+            // Gửi thông tin di chuyển đến server
+            ws.send(JSON.stringify({ dx, dy }));
+            console.log(`Move sent: dx=${dx}, dy=${dy}`);
+        });
+
+        // Bật hoặc tắt chế độ AutoMode
+        function toggleAutoMode() {
+            if (autoMode) {
+                stopAutoMode(); // Dừng chế độ AutoMode nếu đang bật
+            } else {
+                startAutoMode(); // Bật chế độ AutoMode nếu đang tắt
+            }
+        }
+
+        // Bắt đầu chế độ AutoMode
+        function startAutoMode() {
+            autoMode = true;
+            console.log("AutoMode activated.");
+
+            // Di chuyển tự động mỗi 500ms
+            autoMoveInterval = setInterval(() => {
+                const directions = [
+                    { dx: 0, dy: -1 }, // Lên
+                    { dx: 0, dy: 1 },  // Xuống
+                    { dx: -1, dy: 0 }, // Trái
+                    { dx: 1, dy: 0 }   // Phải
+                ];
+
+                // Chọn ngẫu nhiên một hướng di chuyển
+                const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+                const dx = randomDirection.dx;
+                const dy = randomDirection.dy;
+
+                // Cập nhật vị trí người chơi và đảm bảo không ra ngoài giới hạn
+                player.X = (player.X + dx + 20) % 20;
+                player.Y = (player.Y + dy + 20) % 20;
+
+                ws.send(JSON.stringify({ dx, dy })); // Gửi thông tin di chuyển đến server
+
+                // Thử bắt Pokémon nếu có
+                if (
+                    world[player.X] &&
+                    world[player.X][player.Y] &&
+                    world[player.X][player.Y].Pokemon
+                ) {
+                    console.log("Attempting to capture a Pokémon!");
+                    ws.send(JSON.stringify({ capture: true })); // Gửi yêu cầu bắt Pokémon
+                }
+
+                drawGame(); // Vẽ lại trò chơi
+            }, 500);
+
+            // Dừng chế độ AutoMode tự động sau 2 phút
+            autoModeTimeout = setTimeout(() => {
+                console.log("AutoMode stopped automatically after 2 minutes.");
+                stopAutoMode(); // Dừng AutoMode
+            }, 120000); // 2 phút = 120000ms
+        }
+
+        // Dừng chế độ AutoMode
+        function stopAutoMode() {
+            autoMode = false;
+            console.log("AutoMode deactivated.");
+            clearInterval(autoMoveInterval); // Dừng di chuyển tự động
+            clearTimeout(autoModeTimeout); // Hủy timeout nếu còn
+        }
+    </script>
+</body>
+</html>

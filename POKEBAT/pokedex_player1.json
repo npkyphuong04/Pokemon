@@ -1,0 +1,36 @@
+[
+    {
+      "Name": "Pikachu",
+      "HP": 5,
+      "Attack": 55,
+      "Defense": 40,
+      "SpecialAttack": 50,
+      "SpecialDefense": 50,
+      "Speed": 50, 
+      "ElementalEffects": {"fire": 1.5, "water": 0.8},
+      "Experience": 9
+    },
+    {
+      "Name": "Bulbasaur",
+      "HP": 4,
+      "Attack": 49,
+      "Defense": 49,
+      "SpecialAttack": 65,
+      "SpecialDefense": 65,
+      "Speed": 45,
+      "ElementalEffects": {"fire": 0.8, "water": 1.2},
+      "Experience": 10
+    },
+    {
+      "Name": "KhanhQuynh",
+      "HP": 9,
+      "Attack": 49,
+      "Defense": 49,
+      "SpecialAttack": 65,
+      "SpecialDefense": 65,
+      "Speed": 45,
+      "ElementalEffects": {"fire": 0.8, "water": 1.2},
+      "Experience": 15
+    }
+  ]
+  

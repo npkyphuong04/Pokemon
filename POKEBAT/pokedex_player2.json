@@ -1,0 +1,35 @@
+[
+    {
+        "Name": "Charmander",
+        "HP": 2,
+        "Attack": 60,
+        "Defense": 40,
+        "SpecialAttack": 65,
+        "SpecialDefense": 55,
+        "Speed": 85,
+        "ElementalEffects": {"fire": 1.5, "water": 0.8},
+        "Experience": 9
+    },
+    {
+        "Name": "Squirtle",
+        "HP": 3,
+        "Attack": 50,
+        "Defense": 60,
+        "SpecialAttack": 55,
+        "SpecialDefense": 60,
+        "Speed": 70,
+        "ElementalEffects": {"fire": 0.8, "water": 1.5},
+        "Experience": 10
+    },
+    {
+        "Name": "TriDung",
+        "HP": 2,
+        "Attack": 49,
+        "Defense": 49,
+        "SpecialAttack": 65,
+        "SpecialDefense": 65,
+        "Speed": 45,
+        "ElementalEffects": {"fire": 0.8, "water": 1.2},
+        "Experience": 15
+      }
+]
